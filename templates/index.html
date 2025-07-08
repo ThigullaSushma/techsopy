@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Wellness Predictor</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #d3cce3, #e9e4f0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #4b0082;
+      margin-bottom: 20px;
+    }
+
+    label {
+      float: left;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      transition: border 0.3s;
+    }
+
+    input[type="number"]:focus {
+      border: 1px solid #4b0082;
+      outline: none;
+    }
+
+    button {
+      background-color: #4b0082;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #5e2ca5;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #e3ffe3;
+      border-left: 5px solid #28a745;
+      font-size: 15px;
+      color: #2d572c;
+      display: none;
+    }
+
+    .loading {
+      margin-top: 20px;
+      color: #888;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Daily Stress Predictor</h2>
+
+    <form id="stressForm">
+      <label>Sleep Hours</label>
+      <input type="number" name="sleep_hours" min="0" max="24" required>
+
+      <label>Work Hours</label>
+      <input type="number" name="work_hours" min="0" max="24" required>
+
+      <label>Screen Time (hours)</label>
+      <input type="number" name="screen_time" min="0" max="24" required>
+
+      <label>Exercise Minutes</label>
+      <input type="number" name="exercise_minutes" min="0" max="300" required>
+
+
+
+     <label>Mood Score</label>
+<input type="range" id="moodRange" name="mood_score" min="1" max="10" value="5" step="1" oninput="updateMood(this.value)">
+<div id="moodDisplay" style="font-size: 22px; margin-top: 5px;">
+  <span id="moodEmoji">😐</span>
+  <span id="moodValue">5</span>/10
+</div>
+
+<script>
+  function updateMood(val) {
+    const moodMap = {
+      1: "😭", 2: "😢", 3: "😟", 4: "😐", 5: "🙂",
+      6: "😊", 7: "😌", 8: "😁", 9: "😄", 10: "🤩"
+    };
+    document.getElementById("moodEmoji").textContent = moodMap[val];
+    document.getElementById("moodValue").textContent = val;
+  }
+</script>
+
+
+
+
+      <button type="submit">Predict Stress Level</button>
+    </form>
+
+    <div class="loading" id="loading" style="display:none;">Analyzing your inputs...</div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('stressForm');
+    const resultDiv = document.getElementById('result');
+    const loading = document.getElementById('loading');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.style.display = 'none';
+      loading.style.display = 'block';
+
+      const formData = new FormData(form);
+      const jsonData = {};
+      formData.forEach((val, key) => jsonData[key] = Number(val));
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(jsonData)
+        });
+
+        const data = await res.json();
+
+        resultDiv.innerHTML = `<strong>Stress Level:</strong> ${data.predicted_stress_level}<br>
+                               <strong>Recommendation:</strong> ${data.recommendation}`;
+        resultDiv.style.display = 'block';
+      } catch (error) {
+        resultDiv.innerHTML = "❌ Error predicting. Please try again.";
+        resultDiv.style.display = 'block';
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>
+
